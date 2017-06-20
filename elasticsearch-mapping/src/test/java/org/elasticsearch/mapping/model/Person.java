@@ -10,7 +10,7 @@ import java.util.Map;
  * @author luc boutier
  */
 @ESObject
-@ESAll(analyser = "simple")
+@ESAll(analyzer = "simple")
 public class Person {
     @Id
     private String id;

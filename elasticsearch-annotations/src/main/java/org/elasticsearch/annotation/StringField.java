@@ -93,7 +93,7 @@ public @interface StringField {
      * 
      * @return
      */
-    String analyser() default "";
+    String analyzer() default "";
 
     /**
      * The analyzer used to analyze the text contents when analyzed during indexing.

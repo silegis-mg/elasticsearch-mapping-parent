@@ -11,7 +11,7 @@ public class City {
 
     @StringFieldMulti(main = @StringField(indexType = IndexType.not_analyzed),
             multiNames = "lower_case",
-            multi = @StringField(indexType = IndexType.analyzed, analyser = "lowerCaseAnalyser", includeInAll = false))
+            multi = @StringField(indexType = IndexType.analyzed, analyzer = "lowerCaseAnalyser", includeInAll = false))
     private String city;
 
     public String getCity() {

@@ -26,5 +26,5 @@ public @interface ESAll {
      *
      * @return
      */
-    String analyser() default "";
+    String analyzer() default "";
 }

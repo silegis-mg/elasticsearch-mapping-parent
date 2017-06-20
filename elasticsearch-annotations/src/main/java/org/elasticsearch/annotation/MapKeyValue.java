@@ -1,11 +1,11 @@
 package org.elasticsearch.annotation;
 
+import org.elasticsearch.mapping.*;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.elasticsearch.mapping.*;
 
 /**
  * Annotation to tell the mapper to process the mapping for a Map using key and value fields (support requires a specific JSON serializer).
@@ -85,7 +85,7 @@ public @interface MapKeyValue {
      *
      * @return
      */
-    String analyser() default "";
+    String analyzer() default "";
 
     /**
      * The analyzer used to analyze the text contents when analyzed during indexing.

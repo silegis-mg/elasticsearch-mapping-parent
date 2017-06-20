@@ -51,8 +51,8 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
         if (!org.elasticsearch.mapping.IndexOptions.DEFAULT.equals(annotation.indexOptions())) {
             fieldDefinition.put("index_options", annotation.indexOptions());
         }
-        if (!annotation.analyser().isEmpty()) {
-            fieldDefinition.put("analyzer", annotation.analyser());
+        if (!annotation.analyzer().isEmpty()) {
+            fieldDefinition.put("analyzer", annotation.analyzer());
         }
         if (!annotation.indexAnalyzer().isEmpty()) {
             fieldDefinition.put("index_analyzer", annotation.indexAnalyzer());

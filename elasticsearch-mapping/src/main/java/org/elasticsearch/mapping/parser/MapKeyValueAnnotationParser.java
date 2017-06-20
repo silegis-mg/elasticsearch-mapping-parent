@@ -64,8 +64,8 @@ public class MapKeyValueAnnotationParser implements IPropertyAnnotationParser<Ma
         if (!IndexOptions.DEFAULT.equals(annotation.indexOptions())) {
             keyFieldDefinition.put("index_options", annotation.indexOptions());
         }
-        if (!annotation.analyser().isEmpty()) {
-            keyFieldDefinition.put("analyzer", annotation.analyser());
+        if (!annotation.analyzer().isEmpty()) {
+            keyFieldDefinition.put("analyzer", annotation.analyzer());
         }
         if (!annotation.indexAnalyzer().isEmpty()) {
             keyFieldDefinition.put("index_analyzer", annotation.indexAnalyzer());
