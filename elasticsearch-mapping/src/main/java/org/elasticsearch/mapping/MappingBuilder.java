@@ -198,7 +198,7 @@ public class MappingBuilder {
 
         ObjectMapper mapper = new ObjectMapper();
         if (typeNameStr != null) {
-            String jsonMapping = mapper.writeValueAsString(typeDefinitionMap);
+            String jsonMapping = mapper.writeValueAsString(typeDefinitionMap.get(typeNameStr));
             this.classesMappings.put(clazz.getName(), jsonMapping);
         }
         // abstract types are not registered but can be use for global queries over indexes.
