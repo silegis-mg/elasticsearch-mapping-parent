@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.elasticsearch.search.facet.terms.TermsFacet.ComparatorType;
-
 /**
  * <p>
  * Allow to specify field facets that return the N most frequent terms.
@@ -19,6 +17,8 @@ import org.elasticsearch.search.facet.terms.TermsFacet.ComparatorType;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.METHOD })
+//TODO: Terms Facets were deprecated, this code should be migrated to Aggregations
+@Deprecated
 public @interface TermsFacet {
     /**
      * The property sub-path if any.
@@ -47,7 +47,7 @@ public @interface TermsFacet {
      * 
      * @return The control on how the term facets are ordered.
      */
-    ComparatorType comparatorType() default ComparatorType.COUNT;
+    //ComparatorType comparatorType() default ComparatorType.COUNT;
 
     /**
      * Allow to get all the terms in the terms facet, ones that do not match a hit, will have a count of 0. Note, this

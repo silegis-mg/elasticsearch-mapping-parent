@@ -1,12 +1,15 @@
 package org.elasticsearch.mapping.parser;
 
+import org.apache.lucene.index.IndexOptions;
+import org.elasticsearch.annotation.StringField;
+import org.elasticsearch.mapping.Indexable;
+import org.elasticsearch.mapping.MappingBuilder;
+import org.elasticsearch.mapping.NormEnabled;
+import org.elasticsearch.mapping.NormLoading;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.elasticsearch.annotation.StringField;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.mapping.*;
+import java.util.logging.Logger;
 
 /**
  * Parse a {@link StringField} annotation.
@@ -14,16 +17,21 @@ import org.elasticsearch.mapping.*;
  * @author luc boutier
  */
 public class StringFieldAnnotationParser implements IPropertyAnnotationParser<StringField> {
-    private static final ESLogger LOGGER = Loggers.getLogger(MappingBuilder.class);
+    private static final Logger LOGGER = Logger.getLogger(MappingBuilder.class.toString());
 
     public void parseAnnotation(StringField annotation, Map<String, Object> fieldDefinition, String pathPrefix, String nestedPrefix, Indexable indexable) {
         if (fieldDefinition.get("type") != null) {
-            LOGGER.info("Overriding mapping for field {} for class {} was defined as type {}", indexable.getName(), indexable.getDeclaringClassName(),
-                    fieldDefinition.get("type"));
+            LOGGER.info(String.format("Overriding mapping for field %s for class %s was defined as type %s", indexable.getName(), indexable.getDeclaringClassName(),
+                    fieldDefinition.get("type")));
             fieldDefinition.clear();
         }
 
-        fieldDefinition.put("type", "string");
+        if(annotation.keyword()) {
+            fieldDefinition.put("type", "keyword");
+        } else {
+            fieldDefinition.put("type", "text");
+        }
+
         fieldDefinition.put("store", annotation.store());
         fieldDefinition.put("index", annotation.indexType());
         // TODO doc_values
@@ -40,7 +48,7 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
             }
             fieldDefinition.put("norms", norms);
         }
-        if (!IndexOptions.DEFAULT.equals(annotation.indexOptions())) {
+        if (!org.elasticsearch.mapping.IndexOptions.DEFAULT.equals(annotation.indexOptions())) {
             fieldDefinition.put("index_options", annotation.indexOptions());
         }
         if (!annotation.analyser().isEmpty()) {

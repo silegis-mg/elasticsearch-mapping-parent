@@ -1,34 +1,28 @@
 package org.elasticsearch.mapping;
 
-import java.beans.IntrospectionException;
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.util.*;
-
-import org.elasticsearch.annotation.ESAll;
-import org.elasticsearch.annotation.ESObject;
-import org.elasticsearch.annotation.IndexAnalyserDefinition;
-import org.elasticsearch.annotation.TypeName;
-import org.elasticsearch.common.collect.Maps;
-import org.elasticsearch.common.lang3.ArrayUtils;
-import org.elasticsearch.util.AnnotationScanner;
-import org.elasticsearch.util.MapUtil;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ArrayUtils;
+import org.elasticsearch.annotation.ESAll;
+import org.elasticsearch.annotation.ESObject;
+import org.elasticsearch.annotation.IndexAnalyserDefinition;
+import org.elasticsearch.annotation.TypeName;
+import org.elasticsearch.util.AnnotationScanner;
+import org.elasticsearch.util.MapUtil;
+
+import java.beans.IntrospectionException;
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  * Helps to parse the ES annotations.
  *
  * @author luc boutier
  */
-@Component
-@Scope("singleton")
 public class MappingBuilder {
     private FieldsMappingBuilder fieldsMappingBuilder = new FieldsMappingBuilder();
 
@@ -198,7 +192,7 @@ public class MappingBuilder {
             classDefinitionMap.put("_all", MapUtil.getMap("enabled", esObject.all()));
         }
         classDefinitionMap.put("_source", MapUtil.getMap("enabled", esObject.source()));
-        classDefinitionMap.put("_type", MapUtil.getMap(new String[] { "store", "index" }, new Object[] { esObject.store(), esObject.index() }));
+        //Not supported on es5 classDefinitionMap.put("_type", MapUtil.getMap(new String[] { "store", "index" }, new Object[] { esObject.store(), esObject.index() }));
 
         this.fieldsMappingBuilder.parseFieldMappings(clazz, classDefinitionMap, facetFields, filteredFields, fetchContexts, pathPrefix, null);
 
@@ -230,7 +224,7 @@ public class MappingBuilder {
             return null;
         }
 
-        Map<Object, Object> analysers = Maps.newHashMap();
+        Map<Object, Object> analysers = new HashMap<>();
         for (IndexAnalyserDefinition analyserDefinition : customAnalyserDefinitions) {
             AnalyserFields analyserFields = new AnalyserFields();
             analyserFields.char_filter = analyserDefinition.char_filter();

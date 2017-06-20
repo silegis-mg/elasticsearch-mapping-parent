@@ -1,7 +1,6 @@
 package org.elasticsearch.mapping.model;
 
 import org.elasticsearch.annotation.*;
-import org.elasticsearch.annotation.query.TermFilter;
 import org.elasticsearch.mapping.IndexType;
 
 import java.util.Map;

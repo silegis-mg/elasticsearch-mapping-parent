@@ -1,5 +1,10 @@
 package org.elasticsearch.mapping;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.elasticsearch.annotation.*;
+import org.elasticsearch.annotation.query.*;
+import org.elasticsearch.mapping.parser.*;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -7,14 +12,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
-
-import org.elasticsearch.annotation.*;
-import org.elasticsearch.annotation.query.*;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.mapping.parser.*;
-import org.elasticsearch.util.MapUtil;
-import org.springframework.util.ClassUtils;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Process fields in a class to fill-in the properties entry in the class definition map.
@@ -22,7 +21,7 @@ import org.springframework.util.ClassUtils;
  * @author luc boutier
  */
 public class FieldsMappingBuilder {
-    private static final ESLogger LOGGER = Loggers.getLogger(MappingBuilder.class);
+    private static final Logger LOGGER = Logger.getLogger(FieldsMappingBuilder.class.toString());
 
     /**
      * Parse fields from the given class to add properties mapping.
@@ -125,10 +124,10 @@ public class FieldsMappingBuilder {
         Id id = indexable.getAnnotation(Id.class);
         if (id != null) {
             if (classDefinitionMap.containsKey("_id")) {
-                LOGGER.warn("An Id annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
+                LOGGER.warning("An Id annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
                         + "> but an id has already be defined for <" + ((Map<String, Object>) classDefinitionMap.get("_id")).get("path") + ">");
             } else {
-                classDefinitionMap.put("_id", MapUtil.getMap(new String[] { "path", "index", "store" }, new Object[] { esFieldName, id.index(), id.store() }));
+                //classDefinitionMap.put("_id", MapUtil.getMap(new String[] { "path", "index", "store" }, new Object[] { esFieldName, id.index(), id.store() }));
             }
         }
     }
@@ -138,7 +137,7 @@ public class FieldsMappingBuilder {
         Routing routing = indexable.getAnnotation(Routing.class);
         if (routing != null) {
             if (classDefinitionMap.containsKey("_routing")) {
-                LOGGER.warn("A Routing annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
+                LOGGER.warning("A Routing annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
                         + "> but a routing has already be defined for <" + ((Map<String, Object>) classDefinitionMap.get("_routing")).get("path") + ">");
             } else {
                 Map<String, Object> routingDef = new HashMap<String, Object>();
@@ -154,7 +153,7 @@ public class FieldsMappingBuilder {
         Boost boost = indexable.getAnnotation(Boost.class);
         if (boost != null) {
             if (classDefinitionMap.containsKey("_boost")) {
-                LOGGER.warn("A Boost annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
+                LOGGER.warning("A Boost annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
                         + "> but a boost has already be defined for <" + ((Map<String, Object>) classDefinitionMap.get("_boost")).get("name") + ">");
             } else {
                 Map<String, Object> boostDef = new HashMap<String, Object>();
@@ -170,7 +169,7 @@ public class FieldsMappingBuilder {
         TimeStamp timeStamp = indexable.getAnnotation(TimeStamp.class);
         if (timeStamp != null) {
             if (classDefinitionMap.containsKey("_timestamp")) {
-                LOGGER.warn("A TimeStamp annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
+                LOGGER.warning("A TimeStamp annotation is defined on field <" + esFieldName + "> of <" + indexable.getDeclaringClassName()
                         + "> but a boost has already be defined for <" + ((Map<String, Object>) classDefinitionMap.get("_timestamp")).get("name") + ">");
             } else {
                 Map<String, Object> timeStampDefinition = new HashMap<String, Object>();
@@ -209,44 +208,66 @@ public class FieldsMappingBuilder {
     }
 
     private void processFilterAnnotation(List<IFilterBuilderHelper> classFilters, String nestedPrefix, String esFieldName, Indexable indexable) {
+
         TermFilter termFilter = indexable.getAnnotation(TermFilter.class);
         if (termFilter != null) {
-            String[] paths = termFilter.paths();
-            if (termFilter.pathGenerator() != null) {
-                // create an instance of the generator
-                try {
-                    IPathGenerator generator = termFilter.pathGenerator().newInstance();
-                    paths = generator.getPaths(paths);
-                } catch (InstantiationException e) {
-                    e.printStackTrace(); // TODO better exception handling
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace(); // TODO better exception handling
-                }
-            }
+            List<String> paths = processPaths(termFilter.paths(), termFilter.pathGenerator());
             for (String path : paths) {
-                path = path.trim();
-                addFilter(classFilters, nestedPrefix, esFieldName, indexable, path, isAnalyzed(indexable, null));
+                addTermFilter(classFilters, nestedPrefix, esFieldName, indexable, path, isAnalyzed(indexable, null));
                 for (String alternateFieldName : alternateFieldNames(indexable)) {
-                    addFilter(classFilters, nestedPrefix, alternateFieldName, indexable, path, isAnalyzed(indexable, alternateFieldName));
+                    addTermFilter(classFilters, nestedPrefix, alternateFieldName, indexable, path, isAnalyzed(indexable, alternateFieldName));
                 }
             }
             return;
         }
+
         RangeFilter rangeFilter = indexable.getAnnotation(RangeFilter.class);
         if (rangeFilter != null) {
             IFilterBuilderHelper facetBuilderHelper = new RangeFilterBuilderHelper(null, esFieldName, rangeFilter);
             classFilters.add(facetBuilderHelper);
         }
+
+        MatchFilter matchFilter = indexable.getAnnotation(MatchFilter.class);
+        if(matchFilter != null) {
+            List<String> paths = processPaths(matchFilter.paths(), matchFilter.pathGenerator());
+            for (String path : paths) {
+                addMatchFilter(classFilters, nestedPrefix, esFieldName, path);
+                for (String alternateFieldName : alternateFieldNames(indexable)) {
+                    addMatchFilter(classFilters, nestedPrefix, esFieldName, path);
+                }
+            }
+        }
     }
 
-    private void addFilter(List<IFilterBuilderHelper> classFilters, String nestedPrefix, String esFieldName, Indexable indexable, String path,
+    private List<String> processPaths(String[] paths, Class<? extends IPathGenerator> pathGenerator) {
+        if (pathGenerator != null) {
+            try {
+                IPathGenerator generator = pathGenerator.newInstance();
+                paths = generator.getPaths(paths);
+            } catch (InstantiationException e) {
+                e.printStackTrace(); // TODO better exception handling
+            } catch (IllegalAccessException e) {
+                e.printStackTrace(); // TODO better exception handling
+            }
+        }
+        return Arrays.asList(paths).stream().map(p -> p.trim()).collect(Collectors.toList());
+    }
+
+    private void addTermFilter(List<IFilterBuilderHelper> classFilters, String nestedPrefix, String esFieldName, Indexable indexable, String path,
             boolean isAnalyzed) {
         if (nestedPrefix != null) {
             esFieldName = esFieldName.substring(nestedPrefix.length() + 1);
         }
         String filterPath = getFilterPath(path, esFieldName);
-
         classFilters.add(new TermsFilterBuilderHelper(isAnalyzed, nestedPrefix, filterPath));
+    }
+
+    private void addMatchFilter(List<IFilterBuilderHelper> classFilters, String nestedPrefix, String esFieldName, String path) {
+        if (nestedPrefix != null) {
+            esFieldName = esFieldName.substring(nestedPrefix.length() + 1);
+        }
+        String filterPath = getFilterPath(path, esFieldName);
+        classFilters.add(new MatchFilterBuilderHelper(nestedPrefix, filterPath));
     }
 
     private void processFacetAnnotation(List<IFacetBuilderHelper> classFacets, List<IFilterBuilderHelper> classFilters, String esFieldName,
@@ -281,7 +302,7 @@ public class FieldsMappingBuilder {
             classFacets.add(facetBuilderHelper);
             if (classFilters.contains(facetBuilderHelper)) {
                 classFilters.remove(facetBuilderHelper);
-                LOGGER.warn("Field <" + esFieldName + "> already had a filter that will be replaced by the defined facet. Only a single one is allowed.");
+                LOGGER.warning("Field <" + esFieldName + "> already had a filter that will be replaced by the defined facet. Only a single one is allowed.");
             }
             classFilters.add(facetBuilderHelper);
         }
@@ -322,7 +343,7 @@ public class FieldsMappingBuilder {
         classFacets.add(facetBuilderHelper);
         if (classFilters.contains(facetBuilderHelper)) {
             classFilters.remove(facetBuilderHelper);
-            LOGGER.warn("Field <" + esFieldName + "> already had a filter that will be replaced by the defined facet. Only a single one is allowed.");
+            LOGGER.warning("Field <" + esFieldName + "> already had a filter that will be replaced by the defined facet. Only a single one is allowed.");
         }
         classFilters.add(facetBuilderHelper);
     }
@@ -422,7 +443,7 @@ public class FieldsMappingBuilder {
             PropertyDescriptor propertyDescriptor = pdMap.get(pdName);
 
             if (propertyDescriptor == null || propertyDescriptor.getReadMethod() == null || propertyDescriptor.getWriteMethod() == null) {
-                LOGGER.debug("Field <" + field.getName() + "> of class <" + clazz.getName() + "> has no proper setter/getter and won't be persisted.");
+                LOGGER.fine("Field <" + field.getName() + "> of class <" + clazz.getName() + "> has no proper setter/getter and won't be persisted.");
             } else {
                 fdMap.put(pdName, field);
             }

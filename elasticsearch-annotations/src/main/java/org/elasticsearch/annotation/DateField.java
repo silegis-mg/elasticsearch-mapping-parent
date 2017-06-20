@@ -1,11 +1,11 @@
 package org.elasticsearch.annotation;
 
+import org.elasticsearch.mapping.IndexType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.elasticsearch.mapping.IndexType;
 
 /**
  * 
@@ -29,13 +29,6 @@ public @interface DateField {
      * @return no or not_analyzed (default is not_analyzed).
      */
     IndexType index() default IndexType.not_analyzed;
-
-    /**
-     * The precision step (number of terms generated for each number value). Defaults to 4.
-     * 
-     * @return The precision step.
-     */
-    int precisionStep() default 4;
 
     /**
      * The boost value. Defaults to 1.0.

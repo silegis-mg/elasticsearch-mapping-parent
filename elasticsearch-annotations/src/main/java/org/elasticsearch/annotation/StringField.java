@@ -1,15 +1,11 @@
 package org.elasticsearch.annotation;
 
+import org.elasticsearch.mapping.*;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.elasticsearch.mapping.IndexOptions;
-import org.elasticsearch.mapping.IndexType;
-import org.elasticsearch.mapping.NormEnabled;
-import org.elasticsearch.mapping.NormLoading;
-import org.elasticsearch.mapping.TermVector;
 
 /**
  * The text based string type is the most basic type, and contains one or more characters. This annotation allows to
@@ -29,6 +25,12 @@ public @interface StringField {
      * @return Yes or no (default is no).
      */
     boolean store() default false;
+
+    /**
+     * If true, changes the type of the field to 'keyword'.
+     * @return
+     */
+    boolean keyword() default false;
 
     /**
      * Set to analyzed for the field to be indexed and searchable after being broken down into token using an analyzer.

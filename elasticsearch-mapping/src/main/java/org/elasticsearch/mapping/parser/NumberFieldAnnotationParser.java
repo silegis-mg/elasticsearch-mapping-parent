@@ -1,13 +1,12 @@
 package org.elasticsearch.mapping.parser;
 
-import java.util.Map;
-
 import org.elasticsearch.annotation.NumberField;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.mapping.Indexable;
 import org.elasticsearch.mapping.MappingBuilder;
 import org.elasticsearch.mapping.MappingException;
+
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Parse a {@link NumberField} annotation.
@@ -15,13 +14,13 @@ import org.elasticsearch.mapping.MappingException;
  * @author luc boutier
  */
 public class NumberFieldAnnotationParser implements IPropertyAnnotationParser<NumberField> {
-    private static final ESLogger LOGGER = Loggers.getLogger(MappingBuilder.class);
+    private static final Logger LOGGER = Logger.getLogger(MappingBuilder.class.toString());
 
     public void parseAnnotation(NumberField annotation, Map<String, Object> fieldDefinition, String pathPrefix, String nestedPrefix,
             Indexable indexable) {
         if (fieldDefinition.get("type") != null) {
-            LOGGER.info("Overriding mapping for field {} for class {} was defined as type {}", indexable.getName(), indexable.getDeclaringClassName(),
-                    fieldDefinition.get("type"));
+            LOGGER.info(String.format("Overriding mapping for field %s for class %s was defined as type %s", indexable.getName(), indexable.getDeclaringClassName(),
+                    fieldDefinition.get("type")));
             fieldDefinition.clear();
         }
 
@@ -38,7 +37,6 @@ public class NumberFieldAnnotationParser implements IPropertyAnnotationParser<Nu
         fieldDefinition.put("type", type);
         fieldDefinition.put("store", annotation.store());
         fieldDefinition.put("index", annotation.index());
-        fieldDefinition.put("precision_step", annotation.precisionStep());
         fieldDefinition.put("boost", annotation.boost());
         fieldDefinition.put("include_in_all", annotation.includeInAll());
         fieldDefinition.put("ignore_malformed", annotation.ignoreMalformed());

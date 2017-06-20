@@ -1,15 +1,10 @@
 package org.elasticsearch.util;
 
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.Set;
+import org.reflections.Reflections;
 
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.mapping.MappingBuilder;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
+import java.lang.annotation.Annotation;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Utility to scan a package for classes with a given annotation.
@@ -17,7 +12,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  * @author Luc Boutier
  */
 public final class AnnotationScanner {
-    private static final ESLogger LOGGER = Loggers.getLogger(MappingBuilder.class);
+    private static final Logger LOGGER = Logger.getLogger(AnnotationScanner.class.toString());
 
     /** Utility classes should have private constructor. */
     private AnnotationScanner() {
@@ -31,29 +26,17 @@ public final class AnnotationScanner {
      * @return A set of classes that have the annotation.
      */
     public static Set<Class<?>> scan(String packageRoot, Class<? extends Annotation> anno) {
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 
-        AnnotationTypeFilter filter = new AnnotationTypeFilter(anno);
-        scanner.addIncludeFilter(filter);
-        Set<BeanDefinition> beanSet = scanner.findCandidateComponents(packageRoot);
-
+        /*FastClasspathScanner scanner = new FastClasspathScanner();
         Set<Class<?>> classSet = new HashSet<Class<?>>();
-        for (BeanDefinition beanDef : beanSet) {
-            LOGGER.debug("found candidate bean = " + beanDef.getBeanClassName());
+        scanner.matchClassesWithAnnotation(anno, aClass -> classSet.add(aClass));*/
 
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(beanDef.getBeanClassName(), true, Thread.currentThread().getContextClassLoader());
-                if (clazz.isAnnotationPresent(anno)) {
-                    LOGGER.debug("found annotated class, " + clazz.getName());
-                    classSet.add(clazz);
-                }
-            } catch (ClassNotFoundException e) {
-                LOGGER.error("exception while scanning classpath for annotated classes", e);
-            }
-        }
+        Reflections reflections = new Reflections(packageRoot);
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(anno);
 
-        return classSet;
+        //classSet.stream().filter( aClass -> aClass.getPackage().getName().startsWith(packageRoot)).collect(Collectors.toSet());
+
+        return annotated;
     }
 
     /**

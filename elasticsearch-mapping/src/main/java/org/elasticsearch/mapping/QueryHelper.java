@@ -1,65 +1,39 @@
 package org.elasticsearch.mapping;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.function.Supplier;
-
-import javax.annotation.Resource;
-
-import org.elasticsearch.action.count.CountRequestBuilder;
-import org.elasticsearch.action.count.CountResponse;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.common.collect.Lists;
-import org.elasticsearch.common.collect.Maps;
-import org.elasticsearch.common.collect.Sets;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.index.query.FilterBuilder;
-import org.elasticsearch.index.query.FilterBuilders;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.util.set.Sets;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 /**
  * Helper class for queries with Elastic Search.
  * 
  * @author luc boutier
  */
-@Component
 public class QueryHelper {
-    private static final ESLogger LOGGER = Loggers.getLogger(QueryHelper.class);
 
-    @Resource
-    private MappingBuilder mappingBuilder;
-    @Resource
-    private ElasticSearchClient esClient;
-
-    private int maxExpansions;
-
-    @Value("#{elasticsearchConfig['elasticSearch.prefix_max_expansions']}")
-    public void setMaxExpansions(final int maxExpansions) {
-        this.maxExpansions = maxExpansions;
-    }
+    private static final Logger LOGGER = Logger.getLogger(QueryHelper.class.toString());
 
     /**
      * Create a {@link QueryBuilderHelper} to prepare a query on elastic search.
      * 
      * @return a {@link QueryBuilderHelper} instance.
      */
-    public IQueryBuilderHelper buildQuery() {
+    public static IQueryBuilderHelper buildQuery(MappingBuilder mappingBuilder, Client esClient) {
         return new QueryBuilderHelper(mappingBuilder, esClient);
     }
 
@@ -71,7 +45,7 @@ public class QueryHelper {
      * @param searchQuery The search query.
      * @return a {@link QueryBuilderHelper} instance.
      */
-    public IQueryBuilderHelper buildQuery(String searchQuery) {
+    public static IQueryBuilderHelper buildQuery(MappingBuilder mappingBuilder, Client esClient, int maxExpansions, String searchQuery) {
         return new QueryBuilderHelper(mappingBuilder, esClient, maxExpansions, searchQuery);
     }
 
@@ -83,7 +57,7 @@ public class QueryHelper {
      * @param searchQuery The search query to apply on the prefix.
      * @return a {@link QueryBuilderHelper} instance.
      */
-    public IQueryBuilderHelper buildQuery(String prefixField, String searchQuery) {
+    public static IQueryBuilderHelper buildQuery(MappingBuilder mappingBuilder, Client esClient, String prefixField, String searchQuery) {
         return new QueryBuilderHelper(mappingBuilder, esClient, prefixField, searchQuery);
     }
 
@@ -119,7 +93,7 @@ public class QueryHelper {
          * @param types The elastic search types on which to perform count.
          * @return The count response.
          */
-        CountResponse count(String[] indices, String... types);
+        SearchResponse count(String[] indices, String... types);
 
         /**
          * Return the current query builder.
@@ -137,7 +111,7 @@ public class QueryHelper {
          * @param customFilter user provided filters.
          * @return current instance.
          */
-        T filters(FilterBuilder... customFilter);
+        T filters(QueryBuilder... customFilter);
 
         /**
          * Add filters to the current query.
@@ -146,7 +120,7 @@ public class QueryHelper {
          * @param customFilters user provided filters to add (using and clause) to the annotation based filters.
          * @return current instance.
          */
-        T filters(Map<String, String[]> filters, FilterBuilder... customFilters);
+        T filters(Map<String, String[]> filters, QueryBuilder... customFilters);
 
         /**
          * Add filters to the current query.
@@ -156,7 +130,7 @@ public class QueryHelper {
          * @param customFilters user provided filters to add (using and clause) to the annotation based filters.
          * @return current instance.
          */
-        T filters(Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies, FilterBuilder... customFilters);
+        T filters(Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies, QueryBuilder... customFilters);
 
         /**
          * 
@@ -217,12 +191,12 @@ public class QueryHelper {
          * @param topHitsBuilder The top hits aggregation builder on which to add fetch context include and excludes.
          * @return The search query builder helper with the top
          */
-        ISearchQueryBuilderHelper fetchContext(String fetchContext, TopHitsBuilder topHitsBuilder);
+        ISearchQueryBuilderHelper fetchContext(String fetchContext, TopHitsAggregationBuilder topHitsBuilder);
     }
 
     public static class QueryBuilderHelper implements ISearchQueryBuilderHelper {
         protected final MappingBuilder mappingBuilder;
-        protected final ElasticSearchClient esClient;
+        protected final Client esClient;
         protected QueryBuilder queryBuilder;
         protected String prefixField;
         protected Class<?>[] classes;
@@ -230,19 +204,19 @@ public class QueryHelper {
         protected SearchRequestBuilder searchRequestBuilder;
         private boolean fieldSort = false;
 
-        private QueryBuilderHelper(MappingBuilder mappingBuilder, ElasticSearchClient esClient) {
+        private QueryBuilderHelper(MappingBuilder mappingBuilder, Client esClient) {
             this.queryBuilder = QueryBuilders.matchAllQuery();
             this.mappingBuilder = mappingBuilder;
             this.esClient = esClient;
         }
 
-        protected QueryBuilderHelper(MappingBuilder mappingBuilder, ElasticSearchClient esClient, int maxExpansions, String searchQuery) {
+        protected QueryBuilderHelper(MappingBuilder mappingBuilder, Client esClient, int maxExpansions, String searchQuery) {
             this.queryBuilder = getOrMatchAll(searchQuery, () -> QueryBuilders.matchPhrasePrefixQuery("_all", searchQuery).maxExpansions(maxExpansions));
             this.mappingBuilder = mappingBuilder;
             this.esClient = esClient;
         }
 
-        protected QueryBuilderHelper(MappingBuilder mappingBuilder, ElasticSearchClient esClient, String prefixField, String searchPrefix) {
+        protected QueryBuilderHelper(MappingBuilder mappingBuilder, Client esClient, String prefixField, String searchPrefix) {
             this.prefixField = prefixField;
             this.queryBuilder = getOrMatchAll(searchPrefix, () -> QueryBuilders.prefixQuery(prefixField, searchPrefix));
             this.mappingBuilder = mappingBuilder;
@@ -279,7 +253,7 @@ public class QueryHelper {
             List<IFilterBuilderHelper> filterBuilderHelpers = mappingBuilder.getFilters(classes[0].getName());
             for (IFilterBuilderHelper filterBuilderHelper : filterBuilderHelpers) {
                 if (filterBuilderHelper.isNested() && prefixField.equals(filterBuilderHelper.getEsFieldName())) {
-                    this.queryBuilder = QueryBuilders.nestedQuery(filterBuilderHelper.getNestedPath(), queryBuilder);
+                    this.queryBuilder = QueryBuilders.nestedQuery(filterBuilderHelper.getNestedPath(), queryBuilder, ScoreMode.None);
                     return;
                 }
             }
@@ -305,13 +279,12 @@ public class QueryHelper {
         }
 
         @Override
-        public CountResponse count(String[] indices, String... types) {
-            CountRequestBuilder countRequestBuilder = esClient.getClient().prepareCount(indices);
-            if (types != null && types.length > 0) {
-                countRequestBuilder.setTypes(types);
-            }
-            countRequestBuilder.setQuery(this.queryBuilder);
-            return countRequestBuilder.execute().actionGet();
+        public SearchResponse count(String[] indices, String... types) {
+
+            SearchRequestBuilder srb = esClient.prepareSearch(indices);
+            srb.setTypes(types);
+            srb.setSize(0);//returns only count
+            return srb.execute().actionGet();
         }
 
         @Override
@@ -321,7 +294,7 @@ public class QueryHelper {
 
         @Override
         public QueryBuilderHelper prepareSearch(String... indices) {
-            this.searchRequestBuilder = esClient.getClient().prepareSearch();
+            this.searchRequestBuilder = esClient.prepareSearch();
             // default search type.
             this.searchRequestBuilder.setSearchType(SearchType.QUERY_THEN_FETCH);
             this.searchRequestBuilder.setQuery(queryBuilder);
@@ -330,18 +303,18 @@ public class QueryHelper {
         }
 
         @Override
-        public QueryBuilderHelper filters(FilterBuilder... customFilter) {
-            this.queryBuilder = addFilters(queryBuilder, Lists.newArrayList(customFilter));
+        public QueryBuilderHelper filters(QueryBuilder... customFilter) {
+            this.queryBuilder = addFilters(queryBuilder, Arrays.asList(customFilter));
             return this;
         }
 
         @Override
-        public QueryBuilderHelper filters(Map<String, String[]> filters, FilterBuilder... customFilters) {
+        public QueryBuilderHelper filters(Map<String, String[]> filters, QueryBuilder... customFilters) {
             return this.filters(filters, null, customFilters);
         }
 
         @Override
-        public QueryBuilderHelper filters(Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies, FilterBuilder... customFilters) {
+        public QueryBuilderHelper filters(Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies, QueryBuilder... customFilters) {
             this.filters = filters;
             if (classes != null && classes.length > 0) {
                 QueryBuilder filteredQueryBuilder = addFilters(this.queryBuilder, classes[0], filters, filterStrategies, customFilters);
@@ -356,13 +329,13 @@ public class QueryHelper {
         }
 
         private QueryBuilder addFilters(QueryBuilder query, Class<?> clazz, Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies,
-                FilterBuilder... customFilters) {
+                                        QueryBuilder... customFilters) {
             if (clazz == null) {
                 return query;
             }
-            final List<FilterBuilder> esFilters = buildFilters(clazz.getName(), filters, filterStrategies);
+            final List<QueryBuilder> esFilters = buildFilters(clazz.getName(), filters, filterStrategies);
             if (customFilters != null) {
-                for (FilterBuilder customFilter : customFilters) {
+                for (QueryBuilder customFilter : customFilters) {
                     if (customFilter != null) {
                         esFilters.add(customFilter);
                     }
@@ -372,29 +345,29 @@ public class QueryHelper {
             return addFilters(query, esFilters);
         }
 
-        private QueryBuilder addFilters(QueryBuilder query, final List<FilterBuilder> esFilters) {
-            FilterBuilder filter = null;
+        private QueryBuilder addFilters(QueryBuilder query, final List<QueryBuilder> esFilters) {
+            QueryBuilder filter = null;
             if (esFilters.size() > 0) {
                 filter = getAndFilter(esFilters);
                 if (filter != null) {
-                    query = QueryBuilders.filteredQuery(query, filter);
+                    query = QueryBuilders.boolQuery().must(query).must(filter);
                 }
             }
             return query;
         }
 
-        private List<FilterBuilder> buildFilters(String className, Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies) {
-            List<FilterBuilder> filterBuilders = new ArrayList<FilterBuilder>();
+        private List<QueryBuilder> buildFilters(String className, Map<String, String[]> filters, Map<String, FilterValuesStrategy> filterStrategies) {
+            List<QueryBuilder> filterBuilders = new ArrayList<QueryBuilder>();
 
             if (filters == null) {
                 return filterBuilders;
             }
 
             if (filterStrategies == null) {
-                filterStrategies = Maps.newHashMap();
+                filterStrategies = new HashMap<>();
             }
 
-            Map<String, List<FilterBuilder>> nestedFilterBuilders = new HashMap<String, List<FilterBuilder>>();
+            Map<String, List<QueryBuilder>> nestedFilterBuilders = new HashMap<String, List<QueryBuilder>>();
             List<IFilterBuilderHelper> filterBuilderHelpers = mappingBuilder.getFilters(className);
             if (filterBuilderHelpers == null) {
                 return filterBuilders;
@@ -404,9 +377,9 @@ public class QueryHelper {
                 String esFieldName = filterBuilderHelper.getEsFieldName();
                 if (filters.containsKey(esFieldName)) {
                     if (filterBuilderHelper.isNested()) {
-                        List<FilterBuilder> nestedFilters = nestedFilterBuilders.get(filterBuilderHelper.getNestedPath());
+                        List<QueryBuilder> nestedFilters = nestedFilterBuilders.get(filterBuilderHelper.getNestedPath());
                         if (nestedFilters == null) {
-                            nestedFilters = new ArrayList<FilterBuilder>(3);
+                            nestedFilters = new ArrayList<QueryBuilder>(3);
                             nestedFilterBuilders.put(filterBuilderHelper.getNestedPath(), nestedFilters);
                         }
                         nestedFilters.addAll(buildFilters(filterBuilderHelper, esFieldName, filters.get(esFieldName), filterStrategies.get(esFieldName)));
@@ -416,29 +389,33 @@ public class QueryHelper {
                 }
             }
 
-            for (Entry<String, List<FilterBuilder>> nestedFilters : nestedFilterBuilders.entrySet()) {
-                filterBuilders.add(FilterBuilders.nestedFilter(nestedFilters.getKey(), getAndFilter(nestedFilters.getValue())));
+            for (Map.Entry<String, List<QueryBuilder>> nestedFilters : nestedFilterBuilders.entrySet()) {
+                filterBuilders.add(QueryBuilders.nestedQuery(nestedFilters.getKey(), getAndFilter(nestedFilters.getValue()), ScoreMode.None));
             }
 
             return filterBuilders;
         }
 
-        private List<FilterBuilder> buildFilters(IFilterBuilderHelper filterBuilderHelper, String esFieldName, String[] values, FilterValuesStrategy strategy) {
+        private List<QueryBuilder> buildFilters(IFilterBuilderHelper filterBuilderHelper, String esFieldName, String[] values, FilterValuesStrategy strategy) {
             if (strategy == null || FilterValuesStrategy.OR.equals(strategy)) {
-                return Lists.newArrayList(filterBuilderHelper.buildFilter(esFieldName, values));
+                return Arrays.asList(filterBuilderHelper.buildFilter(esFieldName, values));
             }
-            List<FilterBuilder> valuesFilters = Lists.newArrayList();
+            List<QueryBuilder> valuesFilters = new ArrayList<>();
             for (String value : values) {
                 valuesFilters.add(filterBuilderHelper.buildFilter(esFieldName, value));
             }
             return valuesFilters;
         }
 
-        private FilterBuilder getAndFilter(List<FilterBuilder> filters) {
+        private QueryBuilder getAndFilter(List<QueryBuilder> filters) {
             if (filters.size() == 1) {
                 return filters.get(0);
             }
-            return FilterBuilders.andFilter(filters.toArray(new FilterBuilder[filters.size()]));
+            QueryBuilder res = QueryBuilders.matchAllQuery();
+            for(QueryBuilder qb: filters) {
+                res = QueryBuilders.boolQuery().must(qb);
+            }
+            return res;
         }
 
         @Override
@@ -493,8 +470,9 @@ public class QueryHelper {
             } else {
                 sortBuilder.order(SortOrder.ASC);
             }
-            // TODO: change to use sortBuilder.unmappedType
-            sortBuilder.ignoreUnmapped(true);
+            // TODO: change api to receive the unmapped type
+            //sortBuilder.unmappedType()
+
             searchRequestBuilder.addSort(sortBuilder);
             return this;
         }
@@ -512,14 +490,14 @@ public class QueryHelper {
         }
 
         @Override
-        public QueryBuilderHelper fetchContext(String fetchContext, TopHitsBuilder aggregation) {
+        public QueryBuilderHelper fetchContext(String fetchContext, TopHitsAggregationBuilder aggregation) {
             if (fetchContext == null) {
                 return this;
             }
 
             String[][] incExc = includeExcludes(fetchContext);
 
-            aggregation.setFetchSource(incExc[0], incExc[1]);
+            aggregation.fetchSource(incExc[0], incExc[1]);
             return this;
         }
 
@@ -535,7 +513,7 @@ public class QueryHelper {
                         includes.addAll(sourceFetchContext.getIncludes());
                         excludes.addAll(sourceFetchContext.getExcludes());
                     } else {
-                        LOGGER.warn("Unable to find fetch context <" + fetchContext + "> for class <" + clazz.getName() + ">. It will be ignored.");
+                        LOGGER.warning("Unable to find fetch context <" + fetchContext + "> for class <" + clazz.getName() + ">. It will be ignored.");
                     }
                 }
             }
