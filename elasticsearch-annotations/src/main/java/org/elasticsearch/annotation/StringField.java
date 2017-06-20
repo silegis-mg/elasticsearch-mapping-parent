@@ -27,10 +27,11 @@ public @interface StringField {
     boolean store() default false;
 
     /**
-     * If true, changes the type of the field to 'keyword'.
-     * @return
+     * Type of the string field
+     *
+     * @return Defaults to TEXT
      */
-    boolean keyword() default false;
+    StringType type() default StringType.TEXT;
 
     /**
      * Set to analyzed for the field to be indexed and searchable after being broken down into token using an analyzer.

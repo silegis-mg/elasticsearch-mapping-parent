@@ -1,11 +1,7 @@
 package org.elasticsearch.mapping.parser;
 
-import org.apache.lucene.index.IndexOptions;
 import org.elasticsearch.annotation.StringField;
-import org.elasticsearch.mapping.Indexable;
-import org.elasticsearch.mapping.MappingBuilder;
-import org.elasticsearch.mapping.NormEnabled;
-import org.elasticsearch.mapping.NormLoading;
+import org.elasticsearch.mapping.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +22,7 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
             fieldDefinition.clear();
         }
 
-        if(annotation.keyword()) {
+        if(annotation.type() == StringType.KEYWORD) {
             fieldDefinition.put("type", "keyword");
         } else {
             fieldDefinition.put("type", "text");
@@ -35,7 +31,11 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
         fieldDefinition.put("store", annotation.store());
         fieldDefinition.put("index", annotation.indexType());
         // TODO doc_values
-        fieldDefinition.put("term_vector", annotation.termVector());
+        if(annotation.type() == StringType.TEXT) {
+            //term_vector is not supported for KEYWORD type
+            fieldDefinition.put("term_vector", annotation.termVector());
+        }
+
         fieldDefinition.put("boost", annotation.boost());
         if (!StringField.NULL_VALUE_NOT_SPECIFIED.equals(annotation.nullValue())) {
             fieldDefinition.put("null_value", annotation.nullValue());
