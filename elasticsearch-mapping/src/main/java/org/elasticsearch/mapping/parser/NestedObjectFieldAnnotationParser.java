@@ -32,6 +32,8 @@ public class NestedObjectFieldAnnotationParser implements IPropertyAnnotationPar
         }
 
         fieldDefinition.put("type", "nested");
+        fieldDefinition.put("include_in_all", annotation.includeInAll());
+
         Map<String, SourceFetchContext> fetchContext = new HashMap<>();
         // nested types can provide replacement class to be managed. This can be usefull to override map default type for example.
         Class<?> replaceClass = annotation.nestedClass().equals(NestedObject.class) ? indexable.getType() : annotation.nestedClass();

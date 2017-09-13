@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface NestedObject {
     Class<?> nestedClass() default NestedObject.class;
+    boolean includeInAll() default true;
 }

@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.alien4cloud</groupId>
+    <groupId>br.gov.almg</groupId>
     <artifactId>elasticsearch-mapping-parent</artifactId>
-    <version>5.0.0</version>
+    <version>5.0.2</version>
     <packaging>pom</packaging>
 
     <name>Elastic search mapping parent</name>
@@ -72,18 +72,23 @@
 
     <developers>
         <developer>
-            <name>Luc Boutier</name>
+            <name>Mauricio Maia</name>
         </developer>
     </developers>
 
     <distributionManagement>
         <repository>
-            <id>repo.opensource.fastconnect.org</id>
-            <url>https://fastconnect.org/maven/content/repositories/opensource</url>
+            <id>almgRelease</id>
+            <name>Repositório de releases da ALMG</name>
+            <url>http://compilador.almg.uucp:8081/nexus/content/repositories/releases</url>
+            <layout>default</layout>
         </repository>
         <snapshotRepository>
-            <id>repo.opensource.snapshot.fastconnect.org</id>
-            <url>https://fastconnect.org/maven/content/repositories/opensource-snapshot</url>
+            <uniqueVersion>true</uniqueVersion>
+            <id>almgSnap</id>
+            <name>Repositório de snapshots da ALMG</name>
+            <url>http://compilador.almg.uucp:8081/nexus/content/repositories/snapshots</url>
+            <layout>default</layout>
         </snapshotRepository>
     </distributionManagement>
 

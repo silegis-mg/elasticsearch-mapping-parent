@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.alien4cloud</groupId>
+        <groupId>br.gov.almg</groupId>
         <artifactId>elasticsearch-mapping-parent</artifactId>
-        <version>5.0.0</version>
+        <version>5.0.2</version>
     </parent>
 
     <artifactId>elasticsearch-mapping</artifactId>
@@ -37,7 +37,7 @@
             <artifactId>spring-context</artifactId>
         </dependency-->
         <dependency>
-            <groupId>org.alien4cloud</groupId>
+            <groupId>br.gov.almg</groupId>
             <artifactId>elasticsearch-annotations</artifactId>
             <version>${project.version}</version>
         </dependency>

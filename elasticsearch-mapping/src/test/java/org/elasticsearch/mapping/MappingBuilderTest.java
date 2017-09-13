@@ -1,29 +1,22 @@
 package org.elasticsearch.mapping;
 
-import java.beans.IntrospectionException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Paths;
-
 import org.elasticsearch.mapping.model.City;
 import org.elasticsearch.mapping.model.Person;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.beans.IntrospectionException;
+import java.io.IOException;
 
 /**
  * Test the mappings.
  * 
  * @author luc boutier
  */
-public class MappingBuilderTest {
-
-    private MappingBuilder mappingBuilder;
+public class MappingBuilderTest extends MappingBuilderTestBase {
 
     @Before
     public void setUp() throws IntrospectionException, IOException {
-        mappingBuilder = new MappingBuilder();
         mappingBuilder.initialize("org.elasticsearch.mapping.model");
     }
 
@@ -42,10 +35,5 @@ public class MappingBuilderTest {
         assertSameContent(cityMapping, "src/test/resources/city-mapping.json");
     }
 
-    private void assertSameContent(String content, String expectedContentFromFile) throws IOException {
-        BufferedReader brMappingTest = new BufferedReader(new FileReader(Paths.get(expectedContentFromFile).toFile()));
-        String expectedMapping = brMappingTest.readLine();
-        Assert.assertEquals(expectedMapping, content);
-    }
 
 }
