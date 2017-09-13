@@ -1,0 +1,1 @@
+{"_source":{"enabled":true},"_all":{"enabled":true},"properties":{"dates":{"include_in_all":false,"index":"not_analyzed","boost":1.0,"store":false,"ignore_malformed":true,"type":"date"}}}

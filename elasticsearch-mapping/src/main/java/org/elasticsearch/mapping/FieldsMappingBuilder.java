@@ -102,7 +102,7 @@ public class FieldsMappingBuilder {
         if (indexable.isArrayOrCollection()) {
             Class<?> arrayType = indexable.getComponentType();
             // process the array type.
-            if (ClassUtils.isPrimitiveOrWrapper(arrayType) || arrayType == String.class || indexable.getType() == Date.class) {
+            if (ClassUtils.isPrimitiveOrWrapper(arrayType) || arrayType == String.class || arrayType == Date.class || indexable.getType() == Date.class) {
                 processStringOrPrimitive(clazz, propertiesDefinitionMap, pathPrefix, nestedPrefix, indexable);
             } else if (arrayType.isEnum()) {
                 // if this is an enum and there is a String
