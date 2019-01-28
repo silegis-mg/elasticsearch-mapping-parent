@@ -33,7 +33,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Ignore;
 
+@Ignore
 public class ElasticSearchInsertMappingTest {
     private Client esClient;
     private MappingBuilder mappingBuilder;
