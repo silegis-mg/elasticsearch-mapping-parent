@@ -132,5 +132,11 @@ public @interface StringField {
      */
     int positionOffsetGap() default 0;
 
+    /**
+     * Include data in-memory, enabling sorting and aggregations on text fields.
+     * 
+     * @return Fielddata is enabled or not.
+     */
+    boolean fieldData() default false;
 
 }

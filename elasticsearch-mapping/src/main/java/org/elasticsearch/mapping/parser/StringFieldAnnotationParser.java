@@ -67,5 +67,9 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
         }
 
         // FIXME annotation.positionOffsetGap();
+
+        if (annotation.fieldData()) {
+            fieldDefinition.put("fielddata", true);
+        }
     }
 }
