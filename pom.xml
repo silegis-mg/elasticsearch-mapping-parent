@@ -71,14 +71,14 @@
         <repository>
             <id>almgRelease</id>
             <name>Reposit�rio de releases da ALMG</name>
-            <url>http://nexus.almg.uucp:8081/repository/releases</url>
+            <url>https://nexus.almg.gov.br/repository/releases</url>
             <layout>default</layout>
         </repository>
         <snapshotRepository>
             <uniqueVersion>true</uniqueVersion>
             <id>almgSnap</id>
             <name>Reposit�rio de snapshots da ALMG</name>
-            <url>http://nexus.almg.uucp:8081/repository/snapshots</url>
+            <url>https://nexus.almg.gov.br/repository/snapshots</url>
             <layout>default</layout>
         </snapshotRepository>
     </distributionManagement>
