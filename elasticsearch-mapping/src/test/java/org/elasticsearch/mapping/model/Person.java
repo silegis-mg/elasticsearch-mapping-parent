@@ -1,7 +1,6 @@
 package org.elasticsearch.mapping.model;
 
 import org.elasticsearch.annotation.*;
-import org.elasticsearch.mapping.IndexType;
 
 import java.util.Map;
 
@@ -14,9 +13,9 @@ import java.util.Map;
 public class Person {
     @Id
     private String id;
-    @StringField(indexType = IndexType.no, includeInAll = false)
+    @StringField(index = false, includeInAll = false)
     private String firstname;
-    @StringField(indexType = IndexType.analyzed)
+    @StringField(index = true)
     private String lastname;
 
     @NestedObject
@@ -25,10 +24,10 @@ public class Person {
     private Address alternateAddress;
 
     // index this by specifying key and value as fields, do not index the key.
-    @MapKeyValue(indexType = IndexType.no)
+    @MapKeyValue(index = false)
     private Map<String, Address> addressMap;
 
-    @NumberField(index = IndexType.not_analyzed, includeInAll = false)
+    @NumberField(index = false, includeInAll = false)
     private long alienScore = 1;
 
     public long getAlienScore() {

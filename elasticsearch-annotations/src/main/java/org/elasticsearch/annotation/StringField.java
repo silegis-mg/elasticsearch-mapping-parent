@@ -36,11 +36,11 @@ public @interface StringField {
     /**
      * Set to analyzed for the field to be indexed and searchable after being broken down into token using an analyzer.
      * not_analyzed means that its still searchable, but does not go through any analysis process or broken down into
-     * tokens. no means that it won���t be searchable at all (as an individual field; it may still be included in _all).
+     * tokens. no means that it won't be searchable at all (as an individual field; it may still be included in _all).
      * 
      * @return Defaults to analyzed, any other value to change setting.
      */
-    IndexType indexType() default IndexType.analyzed;
+    boolean index() default true;
 
     /**
      * Possible values are no, yes, with_offsets, with_positions, with_positions_offsets.

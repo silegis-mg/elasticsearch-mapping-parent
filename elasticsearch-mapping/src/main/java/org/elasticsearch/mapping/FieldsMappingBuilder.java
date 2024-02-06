@@ -317,11 +317,11 @@ public class FieldsMappingBuilder {
         StringFieldMulti multiAnnotation = indexable.getAnnotation(StringFieldMulti.class);
         if (multiAnnotation != null) {
             if (name == null) {
-                return IndexType.analyzed.equals(multiAnnotation.main().indexType());
+                return multiAnnotation.main().index();
             } else {
                 for (int i = 0; i < multiAnnotation.multiNames().length; i++) {
                     if (multiAnnotation.multiNames()[i].equals(name)) {
-                        return IndexType.analyzed.equals(multiAnnotation.multi()[i].indexType());
+                        return multiAnnotation.multi()[i].index();
                     }
                 }
             }
@@ -329,7 +329,7 @@ public class FieldsMappingBuilder {
 
         StringField stringFieldAnnotation = indexable.getAnnotation(StringField.class);
         if (stringFieldAnnotation != null) {
-            return IndexType.analyzed.equals(stringFieldAnnotation.indexType());
+            return stringFieldAnnotation.index();
         }
         return isAnalysed;
     }

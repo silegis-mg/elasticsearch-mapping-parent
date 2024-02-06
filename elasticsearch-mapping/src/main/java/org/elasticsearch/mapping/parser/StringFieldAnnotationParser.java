@@ -29,7 +29,7 @@ public class StringFieldAnnotationParser implements IPropertyAnnotationParser<St
         }
 
         fieldDefinition.put("store", annotation.store());
-        fieldDefinition.put("index", annotation.indexType());
+        fieldDefinition.put("index", annotation.index());
         // TODO doc_values
         if(annotation.type() == StringType.TEXT) {
             //term_vector is not supported for KEYWORD type

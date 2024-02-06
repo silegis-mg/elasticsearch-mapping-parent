@@ -1,7 +1,5 @@
 package org.elasticsearch.annotation;
 
-import org.elasticsearch.mapping.IndexType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,9 +24,9 @@ public @interface DateField {
      * Set to no if the value should not be indexed. In this case, store should be set to yes, since if it���s not indexed
      * and not stored, there is nothing to do with it.
      * 
-     * @return no or not_analyzed (default is not_analyzed).
+     * @return Default is not_analyzed.
      */
-    IndexType index() default IndexType.not_analyzed;
+    boolean index() default false;
 
     /**
      * The boost value. Defaults to 1.0.

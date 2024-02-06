@@ -46,7 +46,7 @@ public class MapKeyValueAnnotationParser implements IPropertyAnnotationParser<Ma
         keyFieldDefinition.put("type", "text");
 
         keyFieldDefinition.put("store", annotation.store());
-        keyFieldDefinition.put("index", annotation.indexType());
+        keyFieldDefinition.put("index", annotation.index());
         // TODO doc_values
         keyFieldDefinition.put("term_vector", annotation.termVector());
         keyFieldDefinition.put("boost", annotation.boost());

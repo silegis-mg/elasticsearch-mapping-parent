@@ -2,11 +2,10 @@ package org.elasticsearch.mapping.model;
 
 import org.elasticsearch.annotation.StringField;
 import org.elasticsearch.annotation.query.MatchFilter;
-import org.elasticsearch.mapping.IndexType;
 
 public class Address {
     @MatchFilter
-    @StringField(includeInAll = false, indexType = IndexType.not_analyzed)
+    @StringField(includeInAll = false, index = false)
     private String city;
 
     public String getCity() {

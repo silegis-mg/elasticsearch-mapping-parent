@@ -5,8 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.elasticsearch.mapping.IndexType;
-
 /**
  * Timestamp field for elastic search.
  * 
@@ -15,7 +13,7 @@ import org.elasticsearch.mapping.IndexType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
 public @interface TimeStamp {
-	IndexType index() default IndexType.not_analyzed;
+	boolean index() default false;
 
 	boolean store() default false;
 	
