@@ -24,8 +24,8 @@ public class Indexable {
         if (field == null && propertyDescriptor == null) {
             throw new MappingException("Both field and property descriptor cannot be null");
         }
-        if (propertyDescriptor != null && (propertyDescriptor.getReadMethod() == null || propertyDescriptor.getWriteMethod() == null)) {
-            throw new MappingException("Property descriptor [" + propertyDescriptor + "] must contain valid getter and setter method");
+        if (propertyDescriptor != null && (propertyDescriptor.getReadMethod() == null)) {
+            throw new MappingException("Property descriptor [" + propertyDescriptor + "] must contain valid getter method");
         }
         if (field != null && propertyDescriptor != null && !field.getType().equals(propertyDescriptor.getPropertyType())) {
             throw new MappingException("Property descriptor's type [" + propertyDescriptor + "] must be the same as field's type [" + field.getType() + "]");

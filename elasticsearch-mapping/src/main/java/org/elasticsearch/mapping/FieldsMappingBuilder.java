@@ -442,8 +442,12 @@ public class FieldsMappingBuilder {
             }
             PropertyDescriptor propertyDescriptor = pdMap.get(pdName);
 
-            if (propertyDescriptor == null || propertyDescriptor.getReadMethod() == null || propertyDescriptor.getWriteMethod() == null) {
+            if (propertyDescriptor == null || propertyDescriptor.getReadMethod() == null) {
                 LOGGER.fine("Field <" + field.getName() + "> of class <" + clazz.getName() + "> has no proper setter/getter and won't be persisted.");
+                
+                if (Arrays.stream(field.getAnnotations()).anyMatch(f -> f.annotationType().getName().startsWith("org.elasticsearch.annotation"))) {
+                    throw new IntrospectionException(String.format("Campo %s de %s não possui getter.", field.getName(), clazz.getName()));
+                }
             } else {
                 fdMap.put(pdName, field);
             }
@@ -467,7 +471,7 @@ public class FieldsMappingBuilder {
 
         for (PropertyDescriptor pd : pdArr) {
             // Check valid getter setter
-            if (pd.getReadMethod() != null && pd.getWriteMethod() != null) {
+            if (pd.getReadMethod() != null) {
                 pdMap.put(pd.getName(), pd);
             }
         }
