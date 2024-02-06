@@ -67,22 +67,22 @@
         </developer>
     </developers>
 
-     <distributionManagement>
+    <distributionManagement>
         <repository>
-            <id>almgRelease</id>
-            <name>Reposit�rio de releases da ALMG</name>
-            <url>https://nexus.almg.gov.br/repository/releases</url>
+            <id>nexus-releases</id>
+            <name>Repositório de releases da ALMG</name>
+            <url>https://nexus.almg.gov.br/repository/releases/</url>
             <layout>default</layout>
         </repository>
         <snapshotRepository>
             <uniqueVersion>true</uniqueVersion>
-            <id>almgSnap</id>
-            <name>Reposit�rio de snapshots da ALMG</name>
-            <url>https://nexus.almg.gov.br/repository/snapshots</url>
+            <id>nexus-snapshots</id>
+            <name>Repositório de snapshots da ALMG</name>
+            <url>https://nexus.almg.gov.br/repository/snapshots/</url>
             <layout>default</layout>
         </snapshotRepository>
     </distributionManagement>
-
+    
     <build>
         <plugins>
             <plugin>
