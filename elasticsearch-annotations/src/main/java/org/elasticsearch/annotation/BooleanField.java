@@ -26,7 +26,7 @@ public @interface BooleanField {
      * 
      * @return Default is not_analyzed.
      */
-    boolean index() default false;
+    boolean index() default true;
 
     /**
      * The boost value. Defaults to 1.0.

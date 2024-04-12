@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
 public @interface TimeStamp {
-	boolean index() default false;
+	boolean index() default true;
 
 	boolean store() default false;
 	

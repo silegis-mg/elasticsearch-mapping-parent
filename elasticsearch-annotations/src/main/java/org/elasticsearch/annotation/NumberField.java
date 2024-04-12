@@ -26,7 +26,7 @@ public @interface NumberField {
      * 
      * @return Default is not_analyzed.
      */
-    boolean index() default false;
+    boolean index() default true;
 
     /**
      * The precision step (number of terms generated for each number value). Defaults to 4.
